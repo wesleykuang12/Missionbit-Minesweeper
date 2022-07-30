@@ -1,14 +1,19 @@
 from tkinter import Button, Label
 import random
 import settings
+import tkinter.messagebox
+import sys
 
 
 class Cell:
   all = []
+  cell_count = settings.CELLS_TOTAL
   cell_count_label_object = None
   
   def __init__(self, x, y, is_mine=False):
     self.is_mine = is_mine
+    self.is_opened = False
+    self.is_mine_candidate = False
     self.cell_button_object = None
     self.x = x
     self.y = y
@@ -33,7 +38,12 @@ class Cell:
   def create_cell_count_label(location):
     label = Label(
       location,
-      text = f"Cells Left:{settings.CELLS_TOTAL}"
+      bg = 'black',
+      fg = 'white',
+      text = f"Cells Left:{Cell.cell_count}",
+      width = 10,
+      height = 2,
+      font = ("", 10)
     )
     Cell.cell_count_label_object = label
   
@@ -45,7 +55,14 @@ class Cell:
         for cell_obj in self.surrounded_cells:
           cell_obj.reveal_cell()
       self.reveal_cell()
-
+      # Player wins when all cells are clicked and only mines left
+      if Cell.cell_count == settings.MINES_TOTAL:
+        tkinter.messagebox.showerror(title='Game Over!', message='You won! :)')
+        
+    # If cell opened, cancel left and right click actions
+    self.cell_button_object.unbind('<Button-1>')
+    self.cell_button_object.unbind('<Button-3>')
+  
   def get_cell_by_axis(self, x, y):
     # return cell object based on x,y value
     for cell in Cell.all:
@@ -74,20 +91,40 @@ class Cell:
     for cell in self.surrounded_cells:
       if cell.is_mine:
         counter += 1
-        
-      return counter  
+    return counter  
   
   def reveal_cell(self):
-    self.cell_button_object.configure(text=self.surrounded_cells_mines_length)
+    if not self.is_opened:
+      Cell.cell_count -= 1
+      self.cell_button_object.configure(text=self.surrounded_cells_mines_length)
+      # Update cell count label 
+      if Cell.cell_count_label_object:
+        Cell.cell_count_label_object.configure(
+          text = f"Cells Left:{Cell.cell_count}"
+        )
+        self.cell_button_object.configure(
+          bg = 'light grey'
+        )
+      # Marks cell as opened
+    self.is_opened = True
   
   def reveal_mine(self):
-    # End game and display game over message
     self.cell_button_object.configure(bg='red')
+    tkinter.messagebox.showerror(title='Game Over!', message='You clicked on a mine! >:D')
+    sys.exit()
   
   def right_click_actions(self, event):
-    print(event)
-    print("I am right clicked!")
-
+    if not self.is_mine_candidate:
+      self.cell_button_object.configure(
+        bg = 'orange'
+      )
+      self.is_mine_candidate = True
+    else:
+      self.cell_button_object.configure(
+        bg = "light grey"
+      )
+      self.is_mine_candidate = False
+  
   @staticmethod
   def randomize_mines():
     picked_cells = random.sample(
@@ -98,4 +135,3 @@ class Cell:
 
   def __repr__(self):
     return f"Cell({self.x},{self.y})"
-    
