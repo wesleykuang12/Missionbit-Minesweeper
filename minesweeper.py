@@ -21,6 +21,20 @@ top_frame = Frame(
 
 top_frame.place(x=0, y=0)
 
+game_title = Label(
+  top_frame,
+  bg = 'black',
+  fg = 'white',
+  text = 'Missionbit Minesweeper',
+  font = ('', 20)
+)
+
+game_title.place(
+  x = utility.width_percent(25),
+  y = 0
+)
+
+
 # Left Frame
 left_frame = Frame(
   root, 
@@ -79,7 +93,6 @@ c1.create_button_object(center_frame)
 c1.cell_button_object.grid(
   column=0, row=0
 )
-
 c2 = Cell()
 c2.create_button_object(center_frame)
 c2.cell_button_object.grid(
